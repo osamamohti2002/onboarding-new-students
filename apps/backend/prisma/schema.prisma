@@ -1,0 +1,214 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  OPERATOR_ONBOARDING
+  OPERATOR_HR
+  OPERATOR_IT
+  TEAMLEAD
+  AANMELDER
+  KANDIDAAT
+}
+
+enum CaseStatus {
+  INTAKE_STARTED
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum StepType {
+  INTRO_MEETING_PLANNED
+  INTRO_MEETING_COMPLETED
+  GENERAL_INFO_SHARED
+  VOG_REQUESTED
+  VOG_VALIDATED
+  CONTRACT_SIGNED
+  GOOGLE_ACCOUNT_CREATED
+  GOOGLE_ACCOUNT_ACTIVATED
+  SLACK_INVITED
+  SLACK_ACTIVATED
+  MENTOR_ASSIGNED
+  LEARNING_PATH_CHOSEN
+  MEETING_PLANNED
+  PROJECT_ASSIGNED
+  STANDUP_PLANNED
+}
+
+enum StepStatus {
+  PENDING
+  COMPLETED
+  BLOCKED
+}
+
+enum GoogleAccountStatus {
+  NOT_STARTED
+  PROVISIONED
+  ACTIVATED
+  SUSPENDED
+}
+
+enum SlackAccountStatus {
+  NOT_STARTED
+  INVITED
+  ACTIVATED
+  DEACTIVATED
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model Person {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cases User?
+  user  OnboardingCase[] @relation("PersonCases")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  personId   String    @unique
+  googleId   String?   @unique
+  role       UserRole
+  mfaEnabled Boolean   @default(false)
+  lastLogin  DateTime?
+  createdAt  DateTime  @default(now())
+
+  person Person @relation(fields: [personId], references: [id])
+
+  submittedCases OnboardingCase[] @relation("SubmittedBy")
+  mentoredCases  OnboardingCase[] @relation("MentoredBy")
+  ownedSteps     WorkflowStep[]
+  auditLogs      AuditLog[]
+  refreshTokens  RefreshToken[]
+}
+
+model OnboardingCase {
+  id            String     @id @default(uuid())
+  personId      String
+  submittedById String?
+  mentorId      String?
+  status        CaseStatus @default(INTAKE_STARTED)
+  trajectType   String
+  team          String?
+  project       String?
+  startDate     DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  person      Person  @relation("PersonCases", fields: [personId], references: [id])
+  submittedBy User?   @relation("SubmittedBy", fields: [submittedById], references: [id])
+  mentor      User?   @relation("MentoredBy", fields: [mentorId], references: [id])
+
+  steps         WorkflowStep[]
+  iamAccount    IamAccount?
+  auditLogs     AuditLog[]
+  notifications Notification[]
+}
+
+model WorkflowStep {
+  id          String     @id @default(uuid())
+  caseId      String
+  ownerId     String?
+  stepType    StepType
+  status      StepStatus @default(PENDING)
+  evidenceUrl String?
+  completedAt DateTime?
+  deadline    DateTime?
+  createdAt   DateTime   @default(now())
+
+  case  OnboardingCase @relation(fields: [caseId], references: [id])
+  owner User?          @relation(fields: [ownerId], references: [id])
+
+  @@unique([caseId, stepType])
+}
+
+model IamAccount {
+  id                  String              @id @default(uuid())
+  caseId              String              @unique
+  googleUserId        String?
+  googleEmail         String?
+  slackUserId         String?
+  googleStatus        GoogleAccountStatus @default(NOT_STARTED)
+  slackStatus         SlackAccountStatus  @default(NOT_STARTED)
+  googleProvisionedAt DateTime?
+  googleActivatedAt   DateTime?
+  slackInvitedAt      DateTime?
+  slackActivatedAt    DateTime?
+
+  case OnboardingCase @relation(fields: [caseId], references: [id])
+}
+
+model MappingRule {
+  id             String   @id @default(uuid())
+  trajectType    String
+  team           String?
+  project        String?
+  googleGroup    String
+  slackChannel   String
+  slackUsergroup String?
+  createdAt      DateTime @default(now())
+
+  @@unique([trajectType, team, project, googleGroup])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  caseId         String?
+  actorId        String?
+  eventType      String
+  targetPersonId String?
+  externalId     String?
+  result         String
+  correlationId  String
+  payload        Json?
+  createdAt      DateTime @default(now())
+
+  case  OnboardingCase? @relation(fields: [caseId], references: [id])
+  actor User?           @relation(fields: [actorId], references: [id])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  caseId    String
+  channel   String
+  recipient String
+  template  String
+  status    String    @default("PENDING")
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  case OnboardingCase @relation(fields: [caseId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

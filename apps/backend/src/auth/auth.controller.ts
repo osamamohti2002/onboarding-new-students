@@ -4,18 +4,21 @@ import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
+import { Public } from 'src/common/decorators/public.decorator';
 
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin(){
     return;
   }
 
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@CurrentUser() user: any){
@@ -23,6 +26,7 @@ export class AuthController {
     return this.authService.generateToken(validatedUser)
   }
 
+  @Public()
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   async refreshToken(@CurrentUser() user: any, @Req() req: any){

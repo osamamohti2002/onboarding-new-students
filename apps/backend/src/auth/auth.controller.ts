@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } fro
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 
 
 @Controller('auth')
@@ -19,5 +21,13 @@ export class AuthController {
   async googleCallback(@CurrentUser() user: any){
     const validatedUser = await this.authService.validateGoogleUser(user);
     return this.authService.generateToken(validatedUser)
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshGuard)
+  async refreshToken(@CurrentUser() user: any, @Req() req: any){
+    const refreshToken = req.headers.authorization.split(' ')[1];
+    return this.authService.refreshToken(user.sub, refreshToken);
+
   }
 }

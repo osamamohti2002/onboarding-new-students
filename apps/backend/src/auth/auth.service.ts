@@ -53,7 +53,7 @@ export class AuthService {
         }
       });
 
-      return {user};
+      return user;
     });
 
     return result;

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { CasesModule } from './cases/cases.module';
@@ -26,7 +24,6 @@ import { RolesGuard } from './common/guards/roles.guard';
     EventsModule,
     PrismaModule,
   ],
-  controllers: [AppController],
   providers: [{
     provide: APP_GUARD,
     useClass: JwtAuthGuard,

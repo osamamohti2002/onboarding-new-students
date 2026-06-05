@@ -5,6 +5,7 @@ import { UpdateCaseDto } from './dto/update-case.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { UpdateStepDto } from './dto/update-step.dto';
 
 @Controller('cases')
 export class CasesController {
@@ -26,5 +27,11 @@ export class CasesController {
 @Get()
 async findAll(@Query() pagination: PaginationDto){
   return this.casesService.findAll(pagination);
+}
+
+@Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
+@Patch(':stepId')
+async updateStep(@Param('stepId') stepId: string, @Body() data: UpdateStepDto){
+  return this.casesService.updateStep(stepId, data);
 }
 }

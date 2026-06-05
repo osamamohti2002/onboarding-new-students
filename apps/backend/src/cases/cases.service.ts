@@ -4,20 +4,21 @@ import { UpdateCaseDto } from './dto/update-case.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StepType } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { UpdateStepDto } from './dto/update-step.dto';
 
 @Injectable()
 export class CasesService {
   constructor(private readonly prisma: PrismaService){}
 
-async createCase(data: CreateCaseDto){
-  const person = await this.prisma.person.findUnique({
-    where:{
-      id: data.personId,
-    },
-  });
-  if(!person){
-    throw new NotFoundException('Persom not Found')
-  }
+  async createCase(data: CreateCaseDto){
+    const person = await this.prisma.person.findUnique({
+      where:{
+        id: data.personId,
+      },
+    });
+    if(!person){
+      throw new NotFoundException('Persom not Found')
+    }
 
   const result = await this.prisma.$transaction(async (tx) => {
     // onboardingcase aanmaken
@@ -70,28 +71,49 @@ async createCase(data: CreateCaseDto){
     return existingCase;
   }
 
-async findAll(pagination: PaginationDto){
-  const skip = (pagination.page - 1) * pagination.limit
-  
-  const [cases, total] = await this.prisma.$transaction([
-    this.prisma.onboardingCase.findMany({
-      skip: skip,
-      take: pagination.limit,
-      include:{
-        person: true,
-        steps: true,
-      },
-    }),
-    this.prisma.onboardingCase.count(),
-  ]);
+  async findAll(pagination: PaginationDto){
+    const skip = (pagination.page - 1) * pagination.limit
+    
+    const [cases, total] = await this.prisma.$transaction([
+      this.prisma.onboardingCase.findMany({
+        skip: skip,
+        take: pagination.limit,
+        include:{
+          person: true,
+          steps: true,
+        },
+      }),
+      this.prisma.onboardingCase.count(),
+    ]);
 
-  return {
-    data: cases,
-    total,
-    page: pagination.page,
-    limit: pagination.limit,
-  };
-}
+    return {
+      data: cases,
+      total,
+      page: pagination.page,
+      limit: pagination.limit,
+    };
+  }
+
+  async updateStep(stepId: string, data: UpdateStepDto){
+    const existingStep = await this.prisma.workflowStep.findUnique({
+      where: { id: stepId },
+    });
+
+    if(!existingStep){
+      throw new NotFoundException('Step not found');
+    }
+
+    return this.prisma.workflowStep.update({
+      where: { id: stepId },
+      data:{
+        status: data.status,
+        evidenceUrl: data.evidenceUrl,
+        completedAt: data.completedAt ? new Date(data.completedAt) : undefined,
+        ownerId: data.ownerId,
+        deadline: data.deadline ? new Date(data.deadline) : undefined,
+      }
+    });
+  }
 
   
 }

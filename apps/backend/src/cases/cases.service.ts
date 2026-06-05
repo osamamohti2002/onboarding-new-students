@@ -3,6 +3,7 @@ import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StepType } from 'generated/prisma';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class CasesService {
@@ -68,6 +69,29 @@ async createCase(data: CreateCaseDto){
     }
     return existingCase;
   }
+
+async findAll(pagination: PaginationDto){
+  const skip = (pagination.page - 1) * pagination.limit
+  
+  const [cases, total] = await this.prisma.$transaction([
+    this.prisma.onboardingCase.findMany({
+      skip: skip,
+      take: pagination.limit,
+      include:{
+        person: true,
+        steps: true,
+      },
+    }),
+    this.prisma.onboardingCase.count(),
+  ]);
+
+  return {
+    data: cases,
+    total,
+    page: pagination.page,
+    limit: pagination.limit,
+  };
+}
 
   
 }

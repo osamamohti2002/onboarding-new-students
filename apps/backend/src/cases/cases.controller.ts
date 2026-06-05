@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('cases')
 export class CasesController {
@@ -20,4 +21,10 @@ export class CasesController {
   async findById(@Param('id') id: string){
     return this.casesService.findById(id);
   }
+
+@Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
+@Get()
+async findAll(@Query() pagination: PaginationDto){
+  return this.casesService.findAll(pagination);
+}
 }

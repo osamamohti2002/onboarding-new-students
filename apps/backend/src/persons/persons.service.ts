@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PersonsService {
-  create(createPersonDto: CreatePersonDto) {
-    return 'This action adds a new person';
+  constructor(private readonly prisma: PrismaService){}
+
+  async create(data: CreatePersonDto){
+    const existingPerson = await this.prisma.person.findUnique({
+      where: {
+        email: data.email
+      }
+    });
+
+    if(existingPerson){
+      throw new BadRequestException('user already exists');
+    };
+
+    const newPerson = await this.prisma.person.create({
+      data:{
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone
+      }
+    });
+
+    return newPerson;
+    
   }
 
-  findAll() {
-    return `This action returns all persons`;
-  }
+  async findOrCreate(data: CreatePersonDto){
+    const person = await this.prisma.person.findUnique({
+      where: {
+        email: data.email
+      }
+    });
 
-  findOne(id: number) {
-    return `This action returns a #${id} person`;
-  }
+    if(person){
+      return person;
+    };
 
-  update(id: number, updatePersonDto: UpdatePersonDto) {
-    return `This action updates a #${id} person`;
-  }
+    const newPerson = await this.prisma.person.create({
+      data:{
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone
+      }
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} person`;
+    return newPerson;
   }
+  
 }

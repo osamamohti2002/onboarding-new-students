@@ -52,4 +52,22 @@ async createCase(data: CreateCaseDto){
   });
     return result;
   }
+
+  async findById(id: string){
+    const existingCase = await this.prisma.onboardingCase.findUnique({
+      where:{
+        id: id,
+      },
+      include:{
+        person: true,
+        steps: true,
+      },
+    });
+    if(!existingCase){
+      throw new NotFoundException('Case not found');
+    }
+    return existingCase;
+  }
+
+  
 }

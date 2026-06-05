@@ -14,4 +14,10 @@ export class CasesController {
   async createCase(@Body() data: CreateCaseDto){
     return this.casesService.createCase(data)
   }
+
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
+  @Get(':id')
+  async findById(@Param('id') id: string){
+    return this.casesService.findById(id);
+  }
 }

@@ -21,4 +21,18 @@ export class PersonsController {
   findByEmail(@Param('email') email: string){
     return this.personsService.findByEmail(email);
   }
+
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING)
+  @Post()
+  create(@Body() data: CreatePersonDto){
+    return this.personsService.create(data);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() data: UpdatePersonDto){
+    return this.personsService.update(id, data);
+  }
+
+
 }

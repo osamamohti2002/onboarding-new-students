@@ -1,34 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma';
 
 @Controller('persons')
 export class PersonsController {
   constructor(private readonly personsService: PersonsService) {}
 
-  @Post()
-  create(@Body() createPersonDto: CreatePersonDto) {
-    return this.personsService.create(createPersonDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.personsService.findAll();
-  }
-
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.personsService.findOne(+id);
+  findById(@Param('id') id: string){
+    return this.personsService.findById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
-    return this.personsService.update(+id, updatePersonDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.personsService.remove(+id);
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR)
+  @Get('email/:email')
+  findByEmail(@Param('email') email: string){
+    return this.personsService.findByEmail(email);
   }
 }

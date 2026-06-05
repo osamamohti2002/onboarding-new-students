@@ -2,33 +2,16 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma';
 
 @Controller('cases')
 export class CasesController {
   constructor(private readonly casesService: CasesService) {}
 
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_HR)
   @Post()
-  create(@Body() createCaseDto: CreateCaseDto) {
-    return this.casesService.create(createCaseDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.casesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.casesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCaseDto: UpdateCaseDto) {
-    return this.casesService.update(+id, updateCaseDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.casesService.remove(+id);
+  async createCase(@Body() data: CreateCaseDto){
+    return this.casesService.createCase(data)
   }
 }

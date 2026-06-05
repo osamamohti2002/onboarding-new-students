@@ -115,5 +115,25 @@ export class CasesService {
     });
   }
 
+  async getStep(caseId: string, stepType: StepType){
+    const existingStep = await this.prisma.workflowStep.findUnique({
+      where:{
+        caseId_stepType:{
+          caseId: caseId,
+          stepType: stepType,
+        },
+      },
+      include:{
+        case: true,
+      },
+    });
+
+    if(!existingStep){
+      throw new NotFoundException('Step not found');
+    };
+  
+    return existingStep;
+  }
+
   
 }

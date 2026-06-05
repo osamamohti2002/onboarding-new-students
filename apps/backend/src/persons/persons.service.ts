@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -52,6 +52,57 @@ export class PersonsService {
     });
 
     return newPerson;
+  }
+
+  async findById(id: string){
+    const person = await this.prisma.person.findUnique({
+      where: {
+        id
+      }
+    });
+
+    if(!person){
+      throw new NotFoundException('Person Not Found');
+    };
+    
+    return person;
+
+  }
+
+  async findByEmail(email: string){
+    const person = await this.prisma.person.findUnique({
+      where:{
+        email: email
+      }
+
+    });
+
+    if(!person){
+      throw new NotFoundException('Invalid Email');
+    }
+
+    return person;
+  }
+
+  async update(id: string, data: UpdatePersonDto){
+    const existingPerson = await this.prisma.person.findUnique({
+      where: {
+        id
+      }
+    });
+
+    if(!existingPerson){
+      throw new NotFoundException('Person Not Found');
+    };
+
+    const updatedPerson = await this.prisma.person.update({
+      where: {
+        id
+      },
+      data
+    });
+
+    return updatedPerson;
   }
   
 }

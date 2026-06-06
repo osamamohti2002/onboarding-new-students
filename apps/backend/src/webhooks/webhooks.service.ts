@@ -1,26 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWebhookDto } from './dto/create-webhook.dto';
-import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import { privateDecrypt } from 'crypto';
+import { CasesService } from 'src/cases/cases.service';
+import { PersonsService } from 'src/persons/persons.service';
+import { JotformWebhookDto } from './dto/jotform-webhook.dto';
+
 
 @Injectable()
 export class WebhooksService {
-  create(createWebhookDto: CreateWebhookDto) {
-    return 'This action adds a new webhook';
-  }
+  constructor(
+    private readonly personsService: PersonsService,
+    private readonly casesService : CasesService,
+  ){}
 
-  findAll() {
-    return `This action returns all webhooks`;
-  }
+  async handelJotformSubmission(dto: JotformWebhookDto){
 
-  findOne(id: number) {
-    return `This action returns a #${id} webhook`;
-  }
+    try{
+      // rawRequest parsen
+      const raw = JSON.parse(dto.rawRequest);
 
-  update(id: number, updateWebhookDto: UpdateWebhookDto) {
-    return `This action updates a #${id} webhook`;
-  }
+      // data mappen naar interne formaat
+      const firstName = raw.q3_naam?.first ?? '';
+      const lastName = raw.q3_naam?.last ?? '';
+      const email = raw.q4_email;
+      const phone = raw.q5_telefoonnummer?.full ?? null;
+      const trajectType = raw.q6_trajectType;
+      const {month, day, year} = raw.q8_startdatum;
+      const startDate = `${year}-${month}-${day}`;
 
-  remove(id: number) {
-    return `This action removes a #${id} webhook`;
+      // Person matchen of aanmaken
+      const person = await this.personsService.findOrCreate({
+        firstName,
+        lastName,
+        email,
+        phone
+      });
+
+      // onboarding case aanmaken
+      const onboardingCase = await this.casesService.createCase({
+        personId: person.id,
+        trajectType,
+        startDate,
+      });
+
+      return {
+        message: 'onboarding case created successfully',
+        caseId: onboardingCase?.id,
+        person: person.id
+      }
+    }catch(error){
+        console.log(error);
+        return error;
+    }
+
   }
+    
+  
 }

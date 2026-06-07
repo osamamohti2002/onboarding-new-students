@@ -1,26 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuditDto } from './dto/create-audit.dto';
-import { UpdateAuditDto } from './dto/update-audit.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+
+export interface CreateAuditLogDto {
+  eventType: string;
+  actorId: string;
+  caseId: string
+  targetPersonId: string;
+  externalId: string;
+  result: string;
+  payload?: Record<string, any>;
+}
 
 @Injectable()
 export class AuditService {
-  create(createAuditDto: CreateAuditDto) {
-    return 'This action adds a new audit';
+
+  constructor(private readonly prisma: PrismaService){}
+
+
+  async log(data: CreateAuditLogDto){
+    try{
+      return await this.prisma.auditLog.create({
+        data: {
+          eventType: data.eventType,
+          actorId: data.actorId,
+          caseId: data.caseId,
+          targetPersonId: data.targetPersonId,
+          externalId: data.externalId,
+          result: data.result,
+          correlationId: crypto.randomUUID(),
+          payload: data.payload ?? undefined,
+        },
+      });
+    } catch (error) {
+      console.log('Audit log creation failed: ', error)
+    }
+    return null;
   }
 
-  findAll() {
-    return `This action returns all audit`;
-  }
+  
 
-  findOne(id: number) {
-    return `This action returns a #${id} audit`;
-  }
-
-  update(id: number, updateAuditDto: UpdateAuditDto) {
-    return `This action updates a #${id} audit`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} audit`;
-  }
 }

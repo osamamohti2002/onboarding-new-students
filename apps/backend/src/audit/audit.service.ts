@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 
@@ -36,6 +37,29 @@ export class AuditService {
       console.log('Audit log creation failed: ', error)
     }
     return null;
+  }
+
+  async findAll(pagination: PaginationDto){
+    const skip = (pagination.page - 1) * pagination.limit;
+    
+    const [logs, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        skip,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc'},
+        include: {actor: true, case: true}
+      }),
+      this.prisma.auditLog.count(),
+    ]);
+
+    return{
+      data: logs,
+      total,
+      page: pagination.page,
+      limit: pagination.limit
+    }
+
+
   }
 
 }

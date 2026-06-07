@@ -3,6 +3,7 @@ import { privateDecrypt } from 'crypto';
 import { CasesService } from 'src/cases/cases.service';
 import { PersonsService } from 'src/persons/persons.service';
 import { JotformWebhookDto } from './dto/jotform-webhook.dto';
+import { AuditService } from 'src/audit/audit.service';
 
 
 @Injectable()
@@ -10,6 +11,7 @@ export class WebhooksService {
   constructor(
     private readonly personsService: PersonsService,
     private readonly casesService : CasesService,
+    private readonly auditService: AuditService,
   ){}
 
   async handelJotformSubmission(dto: JotformWebhookDto){
@@ -41,6 +43,14 @@ export class WebhooksService {
         trajectType,
         startDate,
       });
+
+      await this.auditService.log({
+        eventType: 'JOTFORM_SUBMISSION_RECEIVED',
+        caseId: onboardingCase?.id ?? '',
+        targetPersonId: person.id,
+        result: 'SUCCESS',
+        payload: { submissionID: dto.submissionID, formID: dto.formID }
+      })
 
       return {
         message: 'onboarding case created successfully',

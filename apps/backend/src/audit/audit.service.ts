@@ -4,10 +4,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 export interface CreateAuditLogDto {
   eventType: string;
-  actorId: string;
+  actorId?: string;
   caseId: string
   targetPersonId: string;
-  externalId: string;
+  externalId?: string;
   result: string;
   payload?: Record<string, any>;
 }
@@ -37,7 +37,5 @@ export class AuditService {
     }
     return null;
   }
-
-  
 
 }

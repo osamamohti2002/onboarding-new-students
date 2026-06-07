@@ -62,4 +62,14 @@ export class AuditService {
 
   }
 
+  async findById(id: string){
+    const auditLog = await this.prisma.auditLog.findUnique({
+      where: {id},
+      include: {actor: true, case: true}
+    });
+    if(!auditLog) return null;
+    
+    return auditLog
+  }
+
 }

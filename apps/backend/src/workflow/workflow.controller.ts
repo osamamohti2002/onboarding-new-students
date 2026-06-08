@@ -16,4 +16,15 @@ export class WorkflowController {
     ){
       return this.workflowService.validateVog(caseId, evidenceUrl, user.sub)
   }
+
+
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_HR)
+  @Patch(':caseId/contract')
+  async signContract(
+    @Param('caseId') caseId: string,
+    @Body('evidenceUrl') evidenceUrl: string,
+    @CurrentUser() user: any,
+  ){
+    return this.workflowService.signContract(caseId, evidenceUrl, user.sub);
+  }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StepStatus, StepType } from 'generated/prisma';
 import { AuditService } from 'src/audit/audit.service';
@@ -58,5 +58,20 @@ export class WorkflowService {
     return updatedStep;
     
   } 
+
+  private async checkVogGate(caseId: string): Promise<void>{
+    const vogStep = await this.prisma.workflowStep.findUnique({
+      where:{
+        caseId_stepType:{
+          caseId,
+          stepType: StepType.VOG_VALIDATED,
+        }
+      }
+    });
+
+    if(!vogStep || vogStep.status !== StepStatus.COMPLETED){
+      throw new ForbiddenException('VOG must be validated before signing contract');
+    };
+  }
 
 }

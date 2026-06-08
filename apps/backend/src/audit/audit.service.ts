@@ -6,8 +6,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export interface CreateAuditLogDto {
   eventType: string;
   actorId?: string;
-  caseId: string
-  targetPersonId: string;
+  caseId?: string
+  targetPersonId?: string;
   externalId?: string;
   result: string;
   payload?: Record<string, any>;

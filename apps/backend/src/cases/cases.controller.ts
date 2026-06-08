@@ -6,6 +6,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { StepType, UserRole } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStepDto } from './dto/update-step.dto';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('cases')
 export class CasesController {
@@ -31,8 +32,8 @@ export class CasesController {
 
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
   @Patch(':stepId')
-  async updateStep(@Param('stepId') stepId: string, @Body() data: UpdateStepDto){
-    return this.casesService.updateStep(stepId, data);
+  async updateStep(@CurrentUser() user: any,@Param('stepId') stepId: string, @Body() data: UpdateStepDto){
+    return this.casesService.updateStep(stepId, data, user.sub);
   }
 
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)

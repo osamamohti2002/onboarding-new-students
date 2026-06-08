@@ -5,10 +5,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { StepType } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStepDto } from './dto/update-step.dto';
+import { AuditService } from 'src/audit/audit.service';
 
 @Injectable()
 export class CasesService {
-  constructor(private readonly prisma: PrismaService){}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    ){}
 
   async createCase(data: CreateCaseDto){
     const person = await this.prisma.person.findUnique({
@@ -94,7 +98,7 @@ export class CasesService {
     };
   }
 
-  async updateStep(stepId: string, data: UpdateStepDto){
+  async updateStep(stepId: string, data: UpdateStepDto, actorId?: string){
     const existingStep = await this.prisma.workflowStep.findUnique({
       where: { id: stepId },
     });
@@ -103,7 +107,7 @@ export class CasesService {
       throw new NotFoundException('Step not found');
     }
 
-    return this.prisma.workflowStep.update({
+    const updatedStep = await this.prisma.workflowStep.update({
       where: { id: stepId },
       data:{
         status: data.status,
@@ -113,7 +117,27 @@ export class CasesService {
         deadline: data.deadline ? new Date(data.deadline) : undefined,
       }
     });
+
+    try{
+      await this.auditService.log({
+        eventType: 'AUDIT_EVENTS.STEP_UPDATED',
+        actorId,
+        caseId: existingStep.caseId,
+        result: 'SUCCESS',
+        payload:{
+          stepId,
+          stepType: existingStep.stepType,
+          status: data.status,
+        }
+      });
+    }catch(error){
+      console.error('Audit log failed for updateStep:', error);
+      // geen error doorgeven zodat de updateStep niet faalt door het loggen
+    }
+    
+    return updatedStep;
   }
+    
 
   async getStep(caseId: string, stepType: StepType){
     const existingStep = await this.prisma.workflowStep.findUnique({

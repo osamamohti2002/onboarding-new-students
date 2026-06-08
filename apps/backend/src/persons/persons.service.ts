@@ -31,6 +31,7 @@ export class PersonsService {
     
   }
 
+  
   async findOrCreate(data: CreatePersonDto){
     const person = await this.prisma.person.findUnique({
       where: {
@@ -53,6 +54,7 @@ export class PersonsService {
 
     return newPerson;
   }
+
 
   async findById(id: string){
     const person = await this.prisma.person.findUnique({

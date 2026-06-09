@@ -3,13 +3,17 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { StepStatus, StepType } from 'generated/prisma';
 import { AuditService } from 'src/audit/audit.service';
 import { throwError } from 'rxjs';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { VogValidatedEvent } from 'src/events/events/vog-validated.event';
+import { ContractSignedEvent } from 'src/events/events/contract-signed.event';
 
 @Injectable()
 export class WorkflowService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private readonly eventEmitter: EventEmitter2
   ){}
 
   async validateVog(caseId: string, evidenceUrl: string, actorId:string){
@@ -55,6 +59,8 @@ export class WorkflowService {
     }catch(error){
         console.log('Audit log creation failed: ', error);
     }
+
+    this.eventEmitter.emit('vog.validated', new VogValidatedEvent(caseId, actorId))
 
     return updatedStep;
     
@@ -118,6 +124,8 @@ export class WorkflowService {
     }catch(error){
       console.log('Audit log failed for signContract: ', error)
     }
+
+    this.eventEmitter.emit('contract.signed', new ContractSignedEvent(caseId, actorId))
     
     return updatedStep;
   }

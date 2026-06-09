@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { EventsService } from './events.service';
-import { EventsController } from './events.controller';
+import { ContractSignedHandler } from './handlers/contract-signed.handler';
+import { VogValidatedHandler } from './handlers/vog-validated.handler';
 
 @Module({
-  controllers: [EventsController],
-  providers: [EventsService],
+  providers: [
+    ContractSignedHandler,
+    VogValidatedHandler
+  ],
 })
 export class EventsModule {}

@@ -6,6 +6,7 @@ import { throwError } from 'rxjs';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { VogValidatedEvent } from 'src/events/events/vog-validated.event';
 import { ContractSignedEvent } from 'src/events/events/contract-signed.event';
+import { EVENT_NAMES } from 'src/events/event-names';
 
 @Injectable()
 export class WorkflowService {
@@ -60,7 +61,7 @@ export class WorkflowService {
         console.log('Audit log creation failed: ', error);
     }
 
-    this.eventEmitter.emit('vog.validated', new VogValidatedEvent(caseId, actorId))
+    this.eventEmitter.emit(EVENT_NAMES.VOG_VALIDATED, new VogValidatedEvent(caseId, actorId))
 
     return updatedStep;
     
@@ -125,7 +126,7 @@ export class WorkflowService {
       console.log('Audit log failed for signContract: ', error)
     }
 
-    this.eventEmitter.emit('contract.signed', new ContractSignedEvent(caseId, actorId))
+    this.eventEmitter.emit(EVENT_NAMES.CONTRACT_SIGNED, new ContractSignedEvent(caseId, actorId))
     
     return updatedStep;
   }

@@ -4,6 +4,10 @@ import { CasesService } from 'src/cases/cases.service';
 import { PersonsService } from 'src/persons/persons.service';
 import { JotformWebhookDto } from './dto/jotform-webhook.dto';
 import { AuditService } from 'src/audit/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { JotformSubmissionReceivedEvent } from 'src/events/events/jotform-submission-received.event';
+import { error } from 'console';
+import { EVENT_NAMES } from 'src/events/event-names';
 
 
 @Injectable()
@@ -12,6 +16,7 @@ export class WebhooksService {
     private readonly personsService: PersonsService,
     private readonly casesService : CasesService,
     private readonly auditService: AuditService,
+    private readonly eventEmitter: EventEmitter2
   ){}
 
   async handelJotformSubmission(dto: JotformWebhookDto){
@@ -44,19 +49,29 @@ export class WebhooksService {
         startDate,
       });
 
+      if (!onboardingCase) {
+        throw new error('Failed to create onboarding case');
+      }
+
       await this.auditService.log({
         eventType: 'JOTFORM_SUBMISSION_RECEIVED',
-        caseId: onboardingCase?.id ?? '',
+        caseId: onboardingCase.id,
         targetPersonId: person.id,
         result: 'SUCCESS',
         payload: { submissionID: dto.submissionID, formID: dto.formID }
       })
 
+      this.eventEmitter.emit(
+        EVENT_NAMES.JOTFORM_SUBMISSION_RECEIVED,
+        new JotformSubmissionReceivedEvent(onboardingCase.id, person.id)
+      )
+
       return {
         message: 'onboarding case created successfully',
-        caseId: onboardingCase?.id,
+        caseId: onboardingCase.id,
         person: person.id
       }
+
     }catch(error){
         console.log(error);
         return error;

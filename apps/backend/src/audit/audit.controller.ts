@@ -3,7 +3,10 @@ import { AuditService } from './audit.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('audit')
+@ApiBearerAuth('JWT')
 @Controller('audit')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}

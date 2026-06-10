@@ -5,7 +5,7 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { Public } from 'src/common/decorators/public.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiHeader, ApiOperation } from '@nestjs/swagger';
 
 
 @Controller('auth')
@@ -13,6 +13,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @ApiExcludeEndpoint()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin(){
@@ -20,6 +21,7 @@ export class AuthController {
   }
 
   @Public()
+  @ApiExcludeEndpoint()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@CurrentUser() user: any){
@@ -27,6 +29,7 @@ export class AuthController {
     return this.authService.generateToken(validatedUser)
   }
 
+  @ApiExcludeEndpoint()
   @Public()
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)

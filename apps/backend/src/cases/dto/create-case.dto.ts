@@ -1,6 +1,7 @@
 import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateCaseDto {
+    
     @IsString()
     @IsNotEmpty()
     personId: string;

@@ -4,9 +4,8 @@ import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiTags('persons')
 @ApiBearerAuth('JWT')
 @Controller('persons')
 export class PersonsController {

@@ -3,7 +3,7 @@ import { WorkflowService } from './workflow.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse} from '@nestjs/swagger';
 
 @ApiBearerAuth('JWT')
 @Controller('workflow')
@@ -11,6 +11,7 @@ export class WorkflowController {
   constructor(private readonly workflowService: WorkflowService) {}
 
   @ApiOperation({summary: 'Validate VOG step'})
+  @ApiBody({type: String, examples: { 'text/plain': { value: 'evidence url' } }})
   @ApiParam({name: 'caseId', example: '5aab4b14-46f2-4b74-98ed-c80317c308b2', description: 'The UUID of the case'})
   @ApiResponse({status: 200, description: 'VOG step validated'})
   @ApiResponse({status: 400, description: 'Evidence URL is required'})
@@ -28,6 +29,7 @@ export class WorkflowController {
 
   @ApiOperation({summary: 'Validate contract step'})
   @ApiParam({name: 'caseId', example: '5aab4b14-46f2-4b74-98ed-c80317c308b2', description: 'The UUID of the case'})
+  @ApiBody({type: String, examples: { 'text/plain': { value: 'contract evidence url' } }})
   @ApiResponse({status: 200, description: 'Contract signed successfully'})
   @ApiResponse({status: 400, description: 'Evidence URL is required'})
   @ApiResponse({status: 403, description: 'VOG must be validated first'})

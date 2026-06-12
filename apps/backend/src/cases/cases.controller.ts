@@ -56,7 +56,7 @@ export class CasesController {
 
   @ApiOperation({summary: 'Get a step'})
   @ApiParam({name: 'caseId', example: '26052853-dcbb-40ad-8a8b-aaa64f0183d1'})
-  @ApiParam({name: 'stepType', example: 'VOG_VALIDATED'})
+  @ApiParam({name: 'stepType',enum: StepType, example: 'VOG_VALIDATED'})
   @ApiResponse({status: 200, description: 'Step found'})
   @ApiResponse({status: 404, description: 'Step not found'})
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)

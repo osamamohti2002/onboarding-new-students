@@ -12,10 +12,7 @@ export class MappingController {
     return this.mappingService.create(createMappingDto);
   }
 
-  @Get()
-  findAll() {
-    return this.mappingService.findAll();
-  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

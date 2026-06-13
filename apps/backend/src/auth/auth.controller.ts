@@ -29,8 +29,8 @@ export class AuthController {
     return this.authService.generateToken(validatedUser)
   }
 
-  @ApiExcludeEndpoint()
   @Public()
+  @ApiExcludeEndpoint()
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   async refreshToken(@CurrentUser() user: any, @Req() req: any){

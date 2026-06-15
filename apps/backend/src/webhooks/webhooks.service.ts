@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { privateDecrypt } from 'crypto';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CasesService } from 'src/cases/cases.service';
 import { PersonsService } from 'src/persons/persons.service';
 import { JotformWebhookDto } from './dto/jotform-webhook.dto';
@@ -12,6 +11,7 @@ export class WebhooksService {
     private readonly casesService : CasesService,
   ){}
 
+
   async handelJotformSubmission(dto: JotformWebhookDto){
 
     // rawRequest parsen
@@ -23,8 +23,10 @@ export class WebhooksService {
     const email = raw.q4_email;
     const phone = raw.q5_telefoonnummer?.full ?? null;
     const trajectType = raw.q6_trajectType;
-    const {month, day, year} = raw.q8_startdatum;
-    const startDate = `${year}-${month}-${day}`;
+    const {month: startMonth, day: startDay, year: startYear} = raw.q8_startdatum;
+    const startDate = startMonth && startDay && startYear
+     ? `${startYear}-${startMonth}-${startDay}`
+     : undefined;
 
     // Person matchen of aanmaken
     const person = await this.personsService.findOrCreate({
@@ -34,20 +36,36 @@ export class WebhooksService {
       phone
     });
 
-    // onboarding case aanmaken
-    const onboardingCase = await this.casesService.createCase({
-      personId: person.id,
-      trajectType,
-      startDate,
-    });
+    try{
+      // onboarding case aanmaken
+      const onboardingCase = await this.casesService.createCase({
+        personId: person.id,
+        trajectType,
+        startDate,
+        submissionId: dto.submissionID,
+      });
+      
+      if(!onboardingCase){
+        throw new InternalServerErrorException('Failed to create onboarding case');
+      };
 
-    return {
-      message: 'onboarding case created successfully',
-      caseId: onboardingCase?.id,
-      person: person.id
+      return {
+        message: 'onboarding case created successfully',
+        caseId: onboardingCase?.id,
+        person: person.id
+      };
+    }catch(error){
+      if(error?.code === 'P2002'){
+        const existCase = await this.casesService.findCaseBySubmissionId(dto.submissionID);
+        return {
+          message: 'Submission already processed',
+          caseId: existCase?.id,
+          person: existCase?.personId,
+        };
+      }
+      throw error;
+
     }
-
-  }
     
-  
+  } 
 }

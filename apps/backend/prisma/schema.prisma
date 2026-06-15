@@ -108,13 +108,14 @@ model User {
 model OnboardingCase {
   id            String     @id @default(uuid())
   personId      String
-  submittedById String?
+  submittedById String?   
   mentorId      String?
   status        CaseStatus @default(INTAKE_STARTED)
   trajectType   String
   team          String?
   project       String?
   startDate     DateTime?
+  submissionId  String?  @unique
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 

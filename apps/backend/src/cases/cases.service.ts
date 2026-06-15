@@ -30,6 +30,7 @@ export class CasesService {
         project: data.project,
         startDate: data.startDate ? new Date(data.startDate) : null,
         submittedById: data.submittedById,
+        submissionId: data.submissionId ?? null
       },
     });
 
@@ -133,6 +134,14 @@ export class CasesService {
     };
   
     return existingStep;
+  }
+
+  async findCaseBySubmissionId(submissionId: string){
+    return await this.prisma.onboardingCase.findUnique({
+      where: {
+        submissionId,
+      },
+    });
   }
 
   

@@ -94,13 +94,21 @@ export class CasesService {
     };
   }
 
-  async updateStep(stepId: string, data: UpdateStepDto){
+  async updateStep(stepId: string, data: UpdateStepDto, caseId: string){
     const existingStep = await this.prisma.workflowStep.findUnique({
       where: { id: stepId },
     });
 
+    const existingCase = await this.prisma.onboardingCase.findUnique({
+      where: { id: caseId },
+    });
+
     if(!existingStep){
       throw new NotFoundException('Step not found');
+    }
+
+    if(!existingCase){
+      throw new NotFoundException('Case not found');
     }
 
     return this.prisma.workflowStep.update({

@@ -30,9 +30,9 @@ export class CasesController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
-  @Patch(':stepId')
-  async updateStep(@Param('stepId') stepId: string, @Body() data: UpdateStepDto){
-    return this.casesService.updateStep(stepId, data);
+  @Patch(':caseId/steps/:stepId')
+  async updateStep(@Param('caseId') caseId: string, @Param('stepId') stepId: string, @Body() data: UpdateStepDto){
+    return this.casesService.updateStep(stepId, data, caseId);
   }
 
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)

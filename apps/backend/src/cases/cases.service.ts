@@ -19,6 +19,15 @@ export class CasesService {
     if(!person){
       throw new NotFoundException('Persom not Found')
     }
+    // Valideer submittedById
+    if(data.submittedById){
+      const submittedBy = await this.prisma.user.findUnique({
+        where:{id: data.submittedById}
+      });
+      if(!submittedBy){
+        throw new NotFoundException('Submitted by not found');
+      }
+    }
 
   const result = await this.prisma.$transaction(async (tx) => {
     // onboardingcase aanmaken
@@ -109,6 +118,15 @@ export class CasesService {
 
     if(!existingCase){
       throw new NotFoundException('Case not found');
+    }
+    // valideer ownerID
+    if(data.ownerId){
+      const owner = await this.prisma.user.findUnique({
+        where: { id: data.ownerId },
+      });
+      if(!owner){
+        throw new NotFoundException('Owner not found');
+      }
     }
 
     return this.prisma.workflowStep.update({

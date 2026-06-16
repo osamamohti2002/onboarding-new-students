@@ -23,6 +23,15 @@ export class CasesService {
     if(!person){
       throw new NotFoundException('Persom not Found')
     }
+    // Valideer submittedById
+    if(data.submittedById){
+      const submittedBy = await this.prisma.user.findUnique({
+        where:{id: data.submittedById}
+      });
+      if(!submittedBy){
+        throw new NotFoundException('Submitted by not found');
+      }
+    }
 
   const result = await this.prisma.$transaction(async (tx) => {
     // onboardingcase aanmaken
@@ -98,16 +107,33 @@ export class CasesService {
     };
   }
 
-  async updateStep(stepId: string, data: UpdateStepDto, actorId?: string){
+  async updateStep(stepId: string, data: UpdateStepDto, caseId: string){
     const existingStep = await this.prisma.workflowStep.findUnique({
       where: { id: stepId },
+    });
+
+    const existingCase = await this.prisma.onboardingCase.findUnique({
+      where: { id: caseId },
     });
 
     if(!existingStep){
       throw new NotFoundException('Step not found');
     }
 
-    const updatedStep = await this.prisma.workflowStep.update({
+    if(!existingCase){
+      throw new NotFoundException('Case not found');
+    }
+    // valideer ownerID
+    if(data.ownerId){
+      const owner = await this.prisma.user.findUnique({
+        where: { id: data.ownerId },
+      });
+      if(!owner){
+        throw new NotFoundException('Owner not found');
+      }
+    }
+
+    return this.prisma.workflowStep.update({
       where: { id: stepId },
       data:{
         status: data.status,

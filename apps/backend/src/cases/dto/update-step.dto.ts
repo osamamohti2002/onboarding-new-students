@@ -1,11 +1,12 @@
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 import { StepStatus } from "generated/prisma";
 
 export class UpdateStepDto{
-    @IsNotEmpty()
+
     @IsEnum(StepStatus)
-    status: StepStatus;
-    
+    @IsOptional()
+    status?: StepStatus;
+
     @IsString()
     @IsOptional()
     evidenceUrl?: string;

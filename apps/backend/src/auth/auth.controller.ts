@@ -5,15 +5,17 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { Public } from 'src/common/decorators/public.decorator';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
 
-
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @ApiExcludeEndpoint()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin(){
@@ -21,6 +23,7 @@ export class AuthController {
   }
 
   @Public()
+  @ApiExcludeEndpoint()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@CurrentUser() user: any){
@@ -29,6 +32,7 @@ export class AuthController {
   }
 
   @Public()
+  @ApiExcludeEndpoint()
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   async refreshToken(@CurrentUser() user: any, @Req() req: any){
@@ -42,6 +46,7 @@ export class AuthController {
 
   }
 
+  @ApiBearerAuth('JWT')
   @Roles(UserRole.ADMIN)
   @Patch(':id/role')
   updateRole(@Param('id') id: string, @Body('role') role: UserRole){

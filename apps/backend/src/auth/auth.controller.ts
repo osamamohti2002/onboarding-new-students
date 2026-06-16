@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -32,7 +32,12 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   async refreshToken(@CurrentUser() user: any, @Req() req: any){
-    const refreshToken = req.headers.authorization.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedException('Invalid refresh token');
+    }
+    
+    const refreshToken = authHeader.split(' ')[1];
     return this.authService.refreshToken(user.sub, refreshToken);
 
   }

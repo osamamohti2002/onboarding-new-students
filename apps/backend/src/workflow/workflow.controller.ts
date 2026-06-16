@@ -1,34 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Param, Patch } from '@nestjs/common';
 import { WorkflowService } from './workflow.service';
-import { CreateWorkflowDto } from './dto/create-workflow.dto';
-import { UpdateWorkflowDto } from './dto/update-workflow.dto';
-
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 @Controller('workflow')
 export class WorkflowController {
   constructor(private readonly workflowService: WorkflowService) {}
 
-  @Post()
-  create(@Body() createWorkflowDto: CreateWorkflowDto) {
-    return this.workflowService.create(createWorkflowDto);
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_HR)
+  @Patch(':caseId/vog')
+  async validateVog(
+    @Param('caseId') caseId: string,
+    @Body('evidenceUrl') evidenceUrl: string, 
+    @CurrentUser() user: any
+    ){
+      return this.workflowService.validateVog(caseId, evidenceUrl, user.id)
   }
 
-  @Get()
-  findAll() {
-    return this.workflowService.findAll();
-  }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.workflowService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWorkflowDto: UpdateWorkflowDto) {
-    return this.workflowService.update(+id, updateWorkflowDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.workflowService.remove(+id);
+  @Roles(UserRole.ADMIN, UserRole.OPERATOR_HR)
+  @Patch(':caseId/contract')
+  async signContract(
+    @Param('caseId') caseId: string,
+    @Body('evidenceUrl') evidenceUrl: string,
+    @CurrentUser() user: any,
+  ){
+    return this.workflowService.signContract(caseId, evidenceUrl, user.id);
   }
 }

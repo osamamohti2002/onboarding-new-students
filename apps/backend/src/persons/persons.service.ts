@@ -47,6 +47,7 @@ export class PersonsService {
 
   }
 
+
   async findById(id: string){
     const person = await this.prisma.person.findUnique({
       where: {

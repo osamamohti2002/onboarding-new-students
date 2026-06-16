@@ -6,6 +6,7 @@ import { StepType } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStepDto } from './dto/update-step.dto';
 import { AuditService } from 'src/audit/audit.service';
+import { AUDIT_EVENTS } from 'src/events/audit-events';
 
 @Injectable()
 export class CasesService {
@@ -133,7 +134,7 @@ export class CasesService {
       }
     }
 
-    return this.prisma.workflowStep.update({
+    const updatedStep = await this.prisma.workflowStep.update({
       where: { id: stepId },
       data:{
         status: data.status,
@@ -146,8 +147,8 @@ export class CasesService {
 
     try{
       await this.auditService.log({
-        eventType: 'AUDIT_EVENTS.STEP_UPDATED',
-        actorId,
+        eventType: AUDIT_EVENTS.STEP_UPDATED,
+        actorId: data.ownerId,
         caseId: existingStep.caseId,
         result: 'SUCCESS',
         payload:{

@@ -4,7 +4,9 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { JotformWebhookDto } from './dto/jotform-webhook.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('webhooks')
 @Controller('webhooks')
 export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}

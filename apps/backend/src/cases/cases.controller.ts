@@ -6,9 +6,9 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { StepType, UserRole } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStepDto } from './dto/update-step.dto';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cases')
 @ApiBearerAuth('JWT')
 @Controller('cases')
 export class CasesController {

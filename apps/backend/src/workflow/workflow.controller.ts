@@ -3,7 +3,8 @@ import { WorkflowService } from './workflow.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags} from '@nestjs/swagger';
+
 
 @ApiBearerAuth('JWT')
 @Controller('workflow')

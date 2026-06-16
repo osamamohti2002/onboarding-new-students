@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseEnumPipe } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
@@ -49,9 +49,9 @@ export class CasesController {
   @ApiResponse({status: 200, description: 'Step updated'})
   @ApiResponse({status: 404, description: 'Step not found'})
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
-  @Patch(':stepId')
-  async updateStep(@CurrentUser() user: any,@Param('stepId') stepId: string, @Body() data: UpdateStepDto){
-    return this.casesService.updateStep(stepId, data, user.sub);
+  @Patch(':caseId/steps/:stepId')
+  async updateStep(@Param('caseId') caseId: string, @Param('stepId') stepId: string, @Body() data: UpdateStepDto){
+    return this.casesService.updateStep(stepId, data, caseId);
   }
 
   @ApiOperation({summary: 'Get a step'})
@@ -61,7 +61,7 @@ export class CasesController {
   @ApiResponse({status: 404, description: 'Step not found'})
   @Roles(UserRole.ADMIN, UserRole.OPERATOR_ONBOARDING, UserRole.OPERATOR_HR, UserRole.OPERATOR_IT, UserRole.TEAMLEAD)
   @Get(':caseId/steps/:stepType')
-  async getStep(@Param('caseId') caseId: string, @Param('stepType') stepType: StepType){
+  async getStep(@Param('caseId') caseId: string, @Param('stepType', new ParseEnumPipe(StepType)) stepType: StepType){
     return this.casesService.getStep(caseId, stepType);
   }
 

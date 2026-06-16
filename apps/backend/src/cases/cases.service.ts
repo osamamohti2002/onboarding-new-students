@@ -6,6 +6,7 @@ import { StepType } from 'generated/prisma';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStepDto } from './dto/update-step.dto';
 import { AuditService } from 'src/audit/audit.service';
+import { AUDIT_EVENTS } from 'src/events/audit-events';
 
 @Injectable()
 export class CasesService {
@@ -23,6 +24,15 @@ export class CasesService {
     if(!person){
       throw new NotFoundException('Persom not Found')
     }
+    // Valideer submittedById
+    if(data.submittedById){
+      const submittedBy = await this.prisma.user.findUnique({
+        where:{id: data.submittedById}
+      });
+      if(!submittedBy){
+        throw new NotFoundException('Submitted by not found');
+      }
+    }
 
   const result = await this.prisma.$transaction(async (tx) => {
     // onboardingcase aanmaken
@@ -34,6 +44,7 @@ export class CasesService {
         project: data.project,
         startDate: data.startDate ? new Date(data.startDate) : null,
         submittedById: data.submittedById,
+        submissionId: data.submissionId ?? null
       },
     });
 
@@ -98,13 +109,30 @@ export class CasesService {
     };
   }
 
-  async updateStep(stepId: string, data: UpdateStepDto, actorId?: string){
+  async updateStep(stepId: string, data: UpdateStepDto, caseId: string){
     const existingStep = await this.prisma.workflowStep.findUnique({
       where: { id: stepId },
     });
 
+    const existingCase = await this.prisma.onboardingCase.findUnique({
+      where: { id: caseId },
+    });
+
     if(!existingStep){
       throw new NotFoundException('Step not found');
+    }
+
+    if(!existingCase){
+      throw new NotFoundException('Case not found');
+    }
+    // valideer ownerID
+    if(data.ownerId){
+      const owner = await this.prisma.user.findUnique({
+        where: { id: data.ownerId },
+      });
+      if(!owner){
+        throw new NotFoundException('Owner not found');
+      }
     }
 
     const updatedStep = await this.prisma.workflowStep.update({
@@ -120,8 +148,8 @@ export class CasesService {
 
     try{
       await this.auditService.log({
-        eventType: 'AUDIT_EVENTS.STEP_UPDATED',
-        actorId,
+        eventType: AUDIT_EVENTS.STEP_UPDATED,
+        actorId: data.ownerId,
         caseId: existingStep.caseId,
         result: 'SUCCESS',
         payload:{
@@ -157,6 +185,14 @@ export class CasesService {
     };
   
     return existingStep;
+  }
+
+  async findCaseBySubmissionId(submissionId: string){
+    return await this.prisma.onboardingCase.findUnique({
+      where: {
+        submissionId,
+      },
+    });
   }
 
   

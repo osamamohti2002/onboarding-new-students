@@ -31,4 +31,8 @@ export class CreateCaseDto {
     @IsString()
     @IsOptional()
     submittedById?: string;
+
+    @IsString()
+    @IsOptional()
+    submissionId?: string;
 }

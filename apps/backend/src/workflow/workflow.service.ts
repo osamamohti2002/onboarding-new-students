@@ -2,11 +2,11 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StepStatus, StepType } from 'generated/prisma';
 import { AuditService } from 'src/audit/audit.service';
-import { throwError } from 'rxjs';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { VogValidatedEvent } from 'src/events/events/vog-validated.event';
 import { ContractSignedEvent } from 'src/events/events/contract-signed.event';
 import { EVENT_NAMES } from 'src/events/event-names';
+import { AUDIT_EVENTS } from 'src/events/audit-events';
 
 @Injectable()
 export class WorkflowService {
@@ -17,12 +17,11 @@ export class WorkflowService {
     private readonly eventEmitter: EventEmitter2
   ){}
 
-  async validateVog(caseId: string, evidenceUrl: string, actorId:string){
+  async validateVog(caseId: string, evidenceUrl: string, actorId: string){
 
     if(!evidenceUrl){
       throw new BadRequestException('Evidence URL is required for VOG validation');
     }
-
 
     const vogStep = await this.prisma.workflowStep.findUnique({
       where:{
@@ -33,12 +32,10 @@ export class WorkflowService {
       }
     });
 
-    if(!vogStep){throw new NotFoundException('VOG step not found')};
+    if(!vogStep) throw new NotFoundException('VOG step not found');
     
     const updatedStep = await this.prisma.workflowStep.update({
-      where:{
-        id: vogStep.id
-      },
+      where:{ id: vogStep.id },
       data:{
         status: StepStatus.COMPLETED,
         evidenceUrl,
@@ -48,23 +45,22 @@ export class WorkflowService {
 
     try{
       await this.auditService.log({
-        eventType: 'VOG_VALIDATED',
+        eventType: AUDIT_EVENTS.VOG_VALIDATED,
         actorId,
         caseId,
         result: 'SUCCESS',
         payload:{
           evidenceUrl,
-          complatedAt: new Date(),
+          completedAt: new Date(),
         }
-      })
-    }catch(error){
-        console.log('Audit log creation failed: ', error);
+      });
+    } catch(error){
+      console.error('Audit log creation failed: ', error);
     }
 
-    this.eventEmitter.emit(EVENT_NAMES.VOG_VALIDATED, new VogValidatedEvent(caseId, actorId))
+    this.eventEmitter.emit(EVENT_NAMES.VOG_VALIDATED, new VogValidatedEvent(caseId, actorId));
 
     return updatedStep;
-    
   } 
 
   private async checkVogGate(caseId: string): Promise<void>{
@@ -79,15 +75,15 @@ export class WorkflowService {
 
     if(!vogStep || vogStep.status !== StepStatus.COMPLETED){
       throw new ForbiddenException('VOG must be validated before signing contract');
-    };
+    }
   }
 
   async signContract(caseId: string, evidenceUrl: string, actorId: string){
     await this.checkVogGate(caseId);
 
     if(!evidenceUrl){
-      throw new BadRequestException('Evidence URL is required for contract signing')
-    };
+      throw new BadRequestException('Evidence URL is required for contract signing');
+    }
 
     const contractStep = await this.prisma.workflowStep.findUnique({
       where:{
@@ -98,12 +94,10 @@ export class WorkflowService {
       }
     });
 
-    if(!contractStep){
-      throw new NotFoundException('Contract not found');
-    };
+    if(!contractStep) throw new NotFoundException('Contract step not found');
 
     const updatedStep = await this.prisma.workflowStep.update({
-      where:{id: contractStep.id},
+      where:{ id: contractStep.id },
       data:{
         status: StepStatus.COMPLETED,
         evidenceUrl,
@@ -113,7 +107,7 @@ export class WorkflowService {
 
     try{
       await this.auditService.log({
-        eventType: 'CONTRACT_SIGNED',
+        eventType: AUDIT_EVENTS.CONTRACT_SIGNED,
         actorId,
         caseId,
         result: 'SUCCESS',
@@ -122,14 +116,12 @@ export class WorkflowService {
           completedAt: new Date()
         }
       });
-    }catch(error){
-      console.log('Audit log failed for signContract: ', error)
+    } catch(error){
+      console.error('Audit log failed for signContract: ', error);
     }
 
-    this.eventEmitter.emit(EVENT_NAMES.CONTRACT_SIGNED, new ContractSignedEvent(caseId, actorId))
+    this.eventEmitter.emit(EVENT_NAMES.CONTRACT_SIGNED, new ContractSignedEvent(caseId, actorId));
     
     return updatedStep;
   }
-
-
 }

@@ -46,7 +46,7 @@ export class AuthService {
         data: {
           personId: person.id,
           googleId: googleUser.googleId,
-          role: UserRole.OPERATOR_ONBOARDING
+          role: UserRole.KANDIDAAT
         },
         include: {
           person: true,
@@ -165,6 +165,31 @@ export class AuthService {
       tokens,
     };
     
+  }
+
+  async updateRole(userId: string, role: UserRole){
+    const user = await this.prisma.user.findUnique({
+      where:{
+        id: userId
+      }
+    });
+
+    if(!user){
+      throw new NotFoundException('user not found');
+    };
+
+    const updatedUser = await this.prisma.user.update({
+      where:{id: userId} ,
+      data:{ role }
+    });
+
+    return {
+      message: 'Role Updated Successfully',
+      user: {
+        id: updatedUser.id,
+        role: updatedUser.role,
+      },
+    };
   }
 
   async logout(userId: string){

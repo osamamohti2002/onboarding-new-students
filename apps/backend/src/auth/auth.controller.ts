@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -6,6 +6,8 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiHeader, ApiOperation } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma';
 
 
 @Controller('auth')
@@ -34,12 +36,23 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   async refreshToken(@CurrentUser() user: any, @Req() req: any){
-    const refreshToken = req.headers.authorization.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedException('Invalid refresh token');
+    }
+    
+    const refreshToken = authHeader.split(' ')[1];
     return this.authService.refreshToken(user.sub, refreshToken);
 
   }
 
   @ApiBearerAuth('JWT')
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/role')
+  updateRole(@Param('id') id: string, @Body('role') role: UserRole){
+    return this.authService.updateRole(id, role)
+  }
+
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@CurrentUser() user: any) {

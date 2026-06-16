@@ -14,7 +14,7 @@ export class WorkflowController {
     @Body('evidenceUrl') evidenceUrl: string, 
     @CurrentUser() user: any
     ){
-      return this.workflowService.validateVog(caseId, evidenceUrl, user.sub)
+      return this.workflowService.validateVog(caseId, evidenceUrl, user.id)
   }
 
 
@@ -25,6 +25,6 @@ export class WorkflowController {
     @Body('evidenceUrl') evidenceUrl: string,
     @CurrentUser() user: any,
   ){
-    return this.workflowService.signContract(caseId, evidenceUrl, user.sub);
+    return this.workflowService.signContract(caseId, evidenceUrl, user.id);
   }
 }

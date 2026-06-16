@@ -1,26 +1,14 @@
-<<<<<<< HEAD
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
-=======
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
->>>>>>> development
 import { StepStatus } from "generated/prisma";
 
 export class UpdateStepDto{
 
-<<<<<<< HEAD
-    @ApiProperty({description: 'the new status of the step', enum: StepStatus, example: StepStatus.PENDING})
-    @IsNotEmpty()
-    @IsEnum(StepStatus)
-    status: StepStatus;
-    
     @ApiProperty({description: 'the URL of the evidence', example: 'https://example.com/evidence.pdf'})
-=======
     @IsEnum(StepStatus)
     @IsOptional()
     status?: StepStatus;
 
->>>>>>> development
     @IsString()
     @IsOptional()
     evidenceUrl?: string;

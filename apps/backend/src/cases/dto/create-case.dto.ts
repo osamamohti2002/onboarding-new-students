@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateCaseDto {
     
@@ -24,6 +24,7 @@ export class CreateCaseDto {
     project?: string;
 
     @ApiPropertyOptional({description: 'The start date of the case.', example: '2022-01-01'})
+    @IsDateString()
     @IsOptional()
     startDate?: string;
 

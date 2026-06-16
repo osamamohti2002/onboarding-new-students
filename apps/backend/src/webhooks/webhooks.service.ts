@@ -31,7 +31,7 @@ export class WebhooksService {
      : undefined;
 
     // Person matchen of aanmaken
-    const person = await this.personsService.findOrCreate({
+    const person = await this.personsService.upsertByEmail({
       firstName,
       lastName,
       email,

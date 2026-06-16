@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
-import { CreateWebhookDto } from './dto/create-webhook.dto';
-import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import { Public } from 'src/common/decorators/public.decorator';
+import { JotformWebhookDto } from './dto/jotform-webhook.dto';
+import { UseInterceptors } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('webhooks')
 export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
-  @Post()
-  create(@Body() createWebhookDto: CreateWebhookDto) {
-    return this.webhooksService.create(createWebhookDto);
+  @Public()
+  @Post('jotform')
+  @HttpCode(200)
+  @UseInterceptors(AnyFilesInterceptor())
+  handleJotformSubmission(@Body() data: JotformWebhookDto){
+    return this.webhooksService.handelJotformSubmission(data)
   }
 
-  @Get()
-  findAll() {
-    return this.webhooksService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.webhooksService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWebhookDto: UpdateWebhookDto) {
-    return this.webhooksService.update(+id, updateWebhookDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.webhooksService.remove(+id);
-  }
+ 
 }

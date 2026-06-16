@@ -31,28 +31,20 @@ export class PersonsService {
     
   }
 
-  
-  async findOrCreate(data: CreatePersonDto){
-    const person = await this.prisma.person.findUnique({
-      where: {
+  async upsertByEmail(data: CreatePersonDto){
+    return this.prisma.person.upsert({
+      where:{
         email: data.email
-      }
-    });
-
-    if(person){
-      return person;
-    };
-
-    const newPerson = await this.prisma.person.create({
-      data:{
+      },
+      update:{},
+      create:{
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         phone: data.phone
       }
-    });
+    })
 
-    return newPerson;
   }
 
 

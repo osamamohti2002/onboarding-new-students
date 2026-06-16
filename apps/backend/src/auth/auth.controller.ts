@@ -5,6 +5,8 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { Public } from 'src/common/decorators/public.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma';
 
 
 @Controller('auth')
@@ -33,6 +35,12 @@ export class AuthController {
     const refreshToken = req.headers.authorization.split(' ')[1];
     return this.authService.refreshToken(user.sub, refreshToken);
 
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/role')
+  updateRole(@Param('id') id: string, @Body('role') role: UserRole){
+    return this.authService.updateRole(id, role)
   }
 
   @Post('logout')

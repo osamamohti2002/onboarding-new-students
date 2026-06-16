@@ -5,8 +5,8 @@ import { JotformWebhookDto } from './dto/jotform-webhook.dto';
 import { AuditService } from 'src/audit/audit.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JotformSubmissionReceivedEvent } from 'src/events/events/jotform-submission-received.event';
-import { error } from 'console';
 import { EVENT_NAMES } from 'src/events/event-names';
+import { AUDIT_EVENTS } from 'src/events/audit-events';
 
 
 @Injectable()
@@ -56,12 +56,8 @@ export class WebhooksService {
         throw new InternalServerErrorException('Failed to create onboarding case');
       };
 
-      if (!onboardingCase) {
-        throw new error('Failed to create onboarding case');
-      }
-
       await this.auditService.log({
-        eventType: 'JOTFORM_SUBMISSION_RECEIVED',
+        eventType: AUDIT_EVENTS.JOTFORM_SUBMISSION_RECEIVED,
         caseId: onboardingCase.id,
         targetPersonId: person.id,
         result: 'SUCCESS',

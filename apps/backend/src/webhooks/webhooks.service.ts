@@ -8,7 +8,6 @@ import { JotformSubmissionReceivedEvent } from 'src/events/events/jotform-submis
 import { EVENT_NAMES } from 'src/events/event-names';
 import { AUDIT_EVENTS } from 'src/events/audit-events';
 
-
 @Injectable()
 export class WebhooksService {
   constructor(
@@ -16,11 +15,9 @@ export class WebhooksService {
     private readonly casesService: CasesService,
     private readonly auditService: AuditService,
     private readonly eventEmitter: EventEmitter2
-  ) { }
-
+  ) {}
 
   async handelJotformSubmission(dto: JotformWebhookDto) {
-
     // rawRequest parsen
     const raw = JSON.parse(dto.rawRequest);
 
@@ -54,27 +51,33 @@ export class WebhooksService {
 
       if (!onboardingCase) {
         throw new InternalServerErrorException('Failed to create onboarding case');
-      };
+      }
 
-      await this.auditService.log({
-        eventType: AUDIT_EVENTS.JOTFORM_SUBMISSION_RECEIVED,
-        caseId: onboardingCase.id,
-        targetPersonId: person.id,
-        result: 'SUCCESS',
-        payload: { submissionID: dto.submissionID, formID: dto.formID }
-      })
+      // Audit log — eigen try/catch zodat een fout de hoofdflow niet blokkeert
+      try {
+        await this.auditService.log({
+          eventType: AUDIT_EVENTS.JOTFORM_SUBMISSION_RECEIVED,
+          caseId: onboardingCase.id,
+          targetPersonId: person.id,
+          result: 'SUCCESS',
+          payload: { submissionID: dto.submissionID, formID: dto.formID }
+        });
+      } catch(auditError){
+        console.error('Audit log failed:', auditError);
+      }
 
       this.eventEmitter.emit(
         EVENT_NAMES.JOTFORM_SUBMISSION_RECEIVED,
         new JotformSubmissionReceivedEvent(onboardingCase.id, person.id)
-      )
+      );
 
       return {
         message: 'onboarding case created successfully',
         caseId: onboardingCase.id,
         person: person.id
-      }
-    } catch (error) {
+      };
+
+    } catch (error: any) {
       if (error?.code === 'P2002') {
         const existCase = await this.casesService.findCaseBySubmissionId(dto.submissionID);
         return {
@@ -84,8 +87,6 @@ export class WebhooksService {
         };
       }
       throw error;
-
     }
-
   }
 }

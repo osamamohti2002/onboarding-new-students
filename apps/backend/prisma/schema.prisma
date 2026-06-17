@@ -83,8 +83,8 @@ model Person {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cases User?
-  user  OnboardingCase[] @relation("PersonCases")
+  user User? 
+  cases  OnboardingCase[] @relation("PersonCases")
 }
 
 model User {

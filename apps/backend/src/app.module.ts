@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { MappingModule } from './mapping/mapping.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     EventsModule,
     PrismaModule,
     EventEmitterModule.forRoot(),
+    MappingModule,
   ],
   providers: [{
     provide: APP_GUARD,
